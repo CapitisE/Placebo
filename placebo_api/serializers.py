@@ -133,10 +133,10 @@ class Drugstore_serializer(ModelSerializer):
 
     class Meta:
         model = Drugstores
-        fields = [('id', 'prn', 'created_at', 'updated_at', 'name', 'image',
-                   'location', 'meds_instock', 'phonenumber', 'email',
-                   'website', 'other_contact', 'phar_license', 'owner',
-                   'door_delivery', 'license_expdate', 'lead_pharmacist')]
+        fields = ['id', 'prn', 'created_at', 'updated_at', 'name', 'image',
+                  'location', 'meds_instock', 'phonenumber', 'email',
+                  'website', 'other_contact', 'phar_license', 'owner',
+                  'door_delivery', 'license_expdate', 'lead_pharmacist']
 
         def validate(self, attrs):
             phar_license = attrs.get('phar_license_status')
