@@ -29,6 +29,10 @@ class DrugstoreViewSet(ModelViewSet):
     serializer_class = Drugstore_serializer
     http_method_names = ['get', 'post', 'delete', 'patch', 'put']
 
+    # def perform_create(self, serializer):
+    #     print('here')
+    #     return super().perform_create(serializer)
+
 
 # Class for Drugs viewset
 class DrugsViewSet(ModelViewSet):

@@ -76,21 +76,26 @@ class Drugstores(BaseModel):
     """Model for Drugstores"""
     prn = models.CharField(max_length=7)
     name = models.CharField(max_length=30)
+    logo = models.FileField(upload_to='drugstorelogo/', default=None)
     image = models.ImageField(upload_to='drugstorepic/')
     location = models.CharField(max_length=300)
     phonenumber = models.ForeignKey(
-        Contact, on_delete=models.CASCADE, related_name='phonenum')
+        Contact, on_delete=models.CASCADE, related_name='phonenum', null=True)
     email = models.EmailField()
+    other_contact = models.ForeignKey(
+        Contact, on_delete=models.CASCADE, related_name='other_phonenum',
+        null=True)
     website = models.URLField()
-    other_contact = models.TextField()
     door_delivery = models.BooleanField(default=True)
     phar_license = models.FileField(
         upload_to='pharmlicensecert/', max_length=300)
     phar_license_status = models.CharField(max_length=7, choices=(
         ('choice1', 'PRESENT'), ('choice2', 'ABSENT'), ('choice3', 'INVALID')))
     license_expdate = models.DateField()
-    owner = models.CharField(max_length=50)
+    owner_name = models.CharField(max_length=50)
+    # owner_image = models.FileField(upload_to='ownerimage/')
     lead_pharmacist = models.CharField(max_length=50)
+    # lead_pharmacist_image = models.FileField(upload_to='leadpharmacistpic/')
     # Introduce rating as a method field, just like age in model Users
 
 
