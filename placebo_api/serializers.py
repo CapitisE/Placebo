@@ -4,7 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from .models import (
     Contact, Users, Drugstores, Drugs, Support, Reviews, Ban, Blacklist,
     Medical_info, Fda_drug_categories)
-from profanity_check import predict
+# from profanity_check import predict
 import datetime
 
 
@@ -129,16 +129,20 @@ class User_serializer(ModelSerializer):
 
 class Drugstore_serializer(ModelSerializer):
     """Serializer for DrugstoreViewSet"""
+    countrycode = serializers.IntegerField(read_only=True)
+    phone = serializers.IntegerField(read_only=True)
 # prn = serializers.PrimaryKeyRelatedField(queryset=Drugstores.objects.all())
 
     class Meta:
         model = Drugstores
         fields = ['id', 'prn', 'created_at', 'updated_at', 'name', 'image',
-                  'location', 'meds_instock', 'phonenumber', 'email',
-                  'website', 'other_contact', 'phar_license', 'owner',
-                  'door_delivery', 'license_expdate', 'lead_pharmacist']
+                  'location', 'email', 'phone', 'countrycode', 'logo',
+                  'website', 'phar_license', 'owner_name', 'door_delivery',
+                  'license_expdate', 'lead_pharmacist']
+        read_only_fields = ('image', 'logo', 'phar_license')
 
         def validate(self, attrs):
+            print("Inside validate")
             phar_license = attrs.get('phar_license_status')
             expiry_date = attrs.get('license_expdate')
             expiry_year = datetime.datetime.year(expiry_date)
@@ -163,54 +167,74 @@ class Drugstore_serializer(ModelSerializer):
 
         @transaction.atomic
         def create(self, validated_drugstore):
-            id = validated_drugstore.get('id')
+            print(validated_drugstore)
+            # id = validated_drugstore.get('id')
             prn = validated_drugstore.get('prn')
-            created_at = validated_drugstore.get('created_at')
+            # created_at = validated_drugstore.get('created_at')
             # name = re.match(r"^[A-Za-z0-9 ]+$")
             # To allow the user enter spaces between word inputs e.g. Blue Wave
             name = validated_drugstore.get('name').split()
+            logo = validated_drugstore.get('logo')
             image = validated_drugstore.get('image')
             location = validated_drugstore.get('location')
-            meds_instock = validated_drugstore.get('meds_instock')
-            phonenumber = validated_drugstore.get('phonenumber')
+            phone = validated_drugstore.get('phone')
+            countrycode = validated_drugstore.get('countrycode')
+
             email = validated_drugstore.get('email')
             website = validated_drugstore.get('website')
-            other_contact = validated_drugstore.get('other_contact')
             phar_license = validated_drugstore.get('phar_license')
             door_delivery = validated_drugstore.get('door_delivery')
             license_expdate = validated_drugstore.get('license_expdate')
-            owner = validated_drugstore.get('owner')
+            # owner_image = validated_drugstore.get('owner_image')
+            owner_name = validated_drugstore.get('owner_name')
             lead_pharmacist = validated_drugstore.get('lead_pharmacist')
+            # lead_pharmacist_image =
+            # validated_drugstore.get('lead_pharmacist_image')
 
-            Drugstores.objects.create(
-                id=id, created_at=created_at, name=name, image=image, prn=prn,
-                location=location, meds_instock=meds_instock, owner=owner,
-                phonenumber=phonenumber, email=email, website=website,
-                other_contact=other_contact, phar_license=phar_license,
-                door_delivery=door_delivery, license_expdate=license_expdate,
+            pharm_phone = Contact.objects.create(
+                phone=phone, countrycode=countrycode)
+            other_contact_phone = Contact.objects.create(
+                phone=phone, countrycode=countrycode)
+
+            # Save the datafields
+
+            drugstore = Drugstores.objects.create(
+                name=name, image=image, prn=prn,
+                location=location, owner_name=owner_name, email=email,
+                phonenumber=pharm_phone, website=website, logo=logo,
+                door_delivery=door_delivery, other_contact=other_contact_phone,
+                phar_license=phar_license, license_expdate=license_expdate,
                 lead_pharmacist=lead_pharmacist)
+            
+            drugstore.save()
 
             return validated_drugstore
+            # return drug_store
 
         def update(self, instance, validated_drugstore):
             name = validated_drugstore.get('name').split()
             updated_at = validated_drugstore.get('updated_at')
             image = validated_drugstore.get('image')
             location = validated_drugstore.get('location')
-            meds_instock = validated_drugstore.get('meds_instock')
-            other_contact = validated_drugstore.get('other_contact')
+            countrycode = validated_drugstore.get('countrycode')
+            phone = validated_drugstore.get('phone')
             phar_license = validated_drugstore.get('phar_license')
             door_delivery = validated_drugstore.get('door_delivery')
             license_expdate = validated_drugstore.get('license_expdate')
-            owner = validated_drugstore.get('owner')
+            owner_name = validated_drugstore.get('owner_name')
             lead_pharmacist = validated_drugstore.get('lead_pharmacist')
 
-            Drugstores.objects.update(
-                name=name, updated_at=updated_at, image=image, owner=owner,
-                location=location, meds_instock=meds_instock,
-                other_contact=other_contact, phar_license=phar_license,
+            other_contacts_phone = Contact.objects.create(
+                phone=phone, countrycode=countrycode)
+
+            updatedrugstore = Drugstores.objects.update(
+                name=name, updated_at=updated_at, image=image,
+                owner_name=owner_name, location=location,
+                other_contact=other_contacts_phone, phar_license=phar_license,
                 door_delivery=door_delivery, license_expdate=license_expdate,
                 lead_pharmacist=lead_pharmacist)
+            
+            updatedrugstore.save()
 
             return super().update(instance, validated_drugstore)
 
@@ -359,10 +383,11 @@ class Support_serializer(ModelSerializer):
             'phonenumber', 'email', 'message']
 
     def validate(self, attrs):
-        support_ticket = attrs.get('message')
-        if predict(support_ticket) == 1:
-            raise serializers.ValidationError(
-                {'Error': 'The use of profanities is not allowed'})
+        ...
+        # support_ticket = attrs.get('message')
+        # if predict(support_ticket) == 1:
+        #     raise serializers.ValidationError(
+        #         {'Error': 'The use of profanities is not allowed'})
 
     @transaction.atomic
     def create(self, validated_message):
@@ -389,10 +414,11 @@ class Review_serializer(ModelSerializer):
                   'lastname', 'phonenumber', 'email', 'message']
 
     def validate(self, attrs):
-        user_review = attrs.get('message')
-        if predict(user_review) == 1:
-            raise serializers.ValidationError(
-                {'Error': 'The use of profanities is not allowed'})
+        ...
+        # user_review = attrs.get('message')
+        # if predict(user_review) == 1:
+        #     raise serializers.ValidationError(
+        #         {'Error': 'The use of profanities is not allowed'})
 
     @transaction.atomic
     def create(self, validated_review):
